@@ -1,0 +1,10 @@
+{
+  "name": "buildathon",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "cd server && node server.js",
+    "dev": "cd server && nodemon server.js",
+    "test": "node --test tests/parseMessages.test.js"
+  }
+}

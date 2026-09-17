@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudySync — Login / Register</title>
+  <meta name="description" content="Login or create a StudySync account to manage your academic schedule." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple: #a78bfa;
+      --purple-dark: #7c3aed;
+      --blue: #60a5fa;
+      --green: #34d399;
+      --red: #f87171;
+      --bg: #0a0a14;
+      --card: rgba(255,255,255,0.05);
+      --border: rgba(255,255,255,0.1);
+      --text: #f1f5f9;
+      --text-dim: #94a3b8;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ── Animated Background ── */
+    .blob { position: fixed; border-radius: 50%; filter: blur(90px); opacity: 0.2; pointer-events: none; z-index: 0; animation: float 10s ease-in-out infinite; }
+    .blob-1 { width: 600px; height: 600px; background: #7c3aed; top: -200px; left: -200px; animation-delay: 0s; }
+    .blob-2 { width: 500px; height: 500px; background: #1d4ed8; bottom: -150px; right: -150px; animation-delay: 3s; }
+    .blob-3 { width: 350px; height: 350px; background: #065f46; top: 40%; left: 40%; animation-delay: 6s; }
+    @keyframes float { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(25px,-25px) scale(1.04); } }
+
+    /* ── Auth Container ── */
+    .auth-wrapper {
+      display: flex;
+      gap: 60px;
+      align-items: center;
+      width: 100%;
+      max-width: 900px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Left Side: Branding ── */
+    .brand-side {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .brand-logo { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+    .brand-icon { font-size: 48px; }
+    .brand-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 36px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--purple), var(--blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .brand-tagline {
+      font-size: 18px;
+      font-weight: 300;
+      color: var(--text-dim);
+      line-height: 1.6;
+      max-width: 340px;
+    }
+    .brand-features { display: flex; flex-direction: column; gap: 14px; margin-top: 8px; }
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+    .feature-icon {
+      width: 36px; height: 36px;
+      background: rgba(167,139,250,0.12);
+      border: 1px solid rgba(167,139,250,0.2);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    /* ── Right Side: Auth Card ── */
+    .auth-card {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 36px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+    }
+
+    /* ── Tabs ── */
+    .auth-tabs {
+      display: flex;
+      background: rgba(0,0,0,0.3);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 28px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      background: none;
+      border: none;
+      border-radius: 8px;
+      color: var(--text-dim);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--purple-dark), #3b82f6);
+      color: white;
+      box-shadow: 0 4px 16px rgba(124,58,237,0.4);
+    }
+
+    /* ── Forms ── */
+    .auth-form { display: none; flex-direction: column; gap: 18px; }
+    .auth-form.active { display: flex; animation: fadeUp 0.3s ease; }
+    @keyframes fadeUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+
+    .form-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .form-subtitle { font-size: 13px; color: var(--text-dim); margin-bottom: 8px; }
+
+    .input-group { display: flex; flex-direction: column; gap: 6px; }
+    .input-label { font-size: 12px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      font-size: 16px;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .input-field {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .input-field:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(167,139,250,0.15);
+    }
+    .input-field::placeholder { color: rgba(148,163,184,0.5); }
+
+    /* ── Toggle password ── */
+    .toggle-pwd {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+      line-height: 1;
+    }
+    .toggle-pwd:hover { color: var(--text); }
+
+    /* ── Submit Button ── */
+    .submit-btn {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, var(--purple-dark), #3b82f6);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+      position: relative;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(124,58,237,0.55); }
+    .submit-btn:active { transform: translateY(0); }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .submit-btn .btn-spinner { display: none; }
+    .submit-btn.loading .btn-text { display: none; }
+    .submit-btn.loading .btn-spinner { display: inline; }
+
+    /* ── Error / Success Message ── */
+    .auth-message {
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+    .auth-message.error { background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.25); color: var(--red); display: flex; }
+    .auth-message.success { background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.25); color: var(--green); display: flex; }
+
+    /* ── Divider ── */
+    .divider { display: flex; align-items: center; gap: 12px; color: var(--text-dim); font-size: 12px; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* ── Guest Access ── */
+    .guest-btn {
+      width: 100%;
+      padding: 11px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-dim);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .guest-btn:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.2); color: var(--text); }
+
+    /* ── Responsive ── */
+    @media (max-width: 720px) {
+      .brand-side { display: none; }
+      .auth-card { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <div class="auth-wrapper">
+
+    <!-- ── Left: Branding ── -->
+    <div class="brand-side">
+      <div class="brand-logo">
+        <div class="brand-icon">📚</div>
+        <div class="brand-name">StudySync</div>
+      </div>
+      <p class="brand-tagline">
+        Your smart academic assistant.<br/>
+        Never miss a deadline again.
+      </p>
+      <div class="brand-features">
+        <div class="feature-item">
+          <div class="feature-icon">💬</div>
+          <span>Paste WhatsApp messages — we detect assignments &amp; exams automatically</span>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📅</div>
+          <span>Visual calendar with color-coded events by type</span>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">⏰</div>
+          <span>Live countdown timers &amp; browser push reminders</span>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🗄️</div>
+          <span>Your events are safely stored in MongoDB database</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Right: Auth Card ── -->
+    <div class="auth-card">
+
+      <!-- Tab switcher -->
+      <div class="auth-tabs">
+        <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">🔑 Login</button>
+        <button class="tab-btn" id="tab-register" onclick="switchTab('register')">✨ Register</button>
+      </div>
+
+      <!-- ── LOGIN FORM ── -->
+      <form class="auth-form active" id="login-form" onsubmit="handleLogin(event)">
+        <div>
+          <div class="form-title">Welcome back! 👋</div>
+          <div class="form-subtitle">Login to your StudySync account</div>
+        </div>
+
+        <!-- Message area -->
+        <div class="auth-message" id="login-msg"></div>
+
+        <div class="input-group">
+          <label class="input-label">Email Address</label>
+          <div class="input-wrapper">
+            <span class="input-icon">📧</span>
+            <input type="email" id="login-email" class="input-field" placeholder="you@example.com" required autocomplete="email" />
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Password</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="login-password" class="input-field" placeholder="Enter your password" required autocomplete="current-password" />
+            <button type="button" class="toggle-pwd" onclick="togglePassword('login-password', this)">👁️</button>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="login-btn">
+          <span class="btn-text">🔑 Login to StudySync</span>
+          <span class="btn-spinner">⏳ Logging in...</span>
+        </button>
+
+        <div class="divider">or</div>
+
+        <button type="button" class="guest-btn" onclick="guestAccess()">
+          👤 Continue as Guest (no account needed)
+        </button>
+      </form>
+
+      <!-- ── REGISTER FORM ── -->
+      <form class="auth-form" id="register-form" onsubmit="handleRegister(event)">
+        <div>
+          <div class="form-title">Create Account ✨</div>
+          <div class="form-subtitle">Join StudySync — it's free!</div>
+        </div>
+
+        <!-- Message area -->
+        <div class="auth-message" id="register-msg"></div>
+
+        <div class="input-group">
+          <label class="input-label">Full Name</label>
+          <div class="input-wrapper">
+            <span class="input-icon">👤</span>
+            <input type="text" id="reg-name" class="input-field" placeholder="Your full name" required autocomplete="name" />
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Email Address</label>
+          <div class="input-wrapper">
+            <span class="input-icon">📧</span>
+            <input type="email" id="reg-email" class="input-field" placeholder="you@example.com" required autocomplete="email" />
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Password <span style="color: var(--text-dim); font-weight: 400; text-transform: none; letter-spacing: 0;">(min. 6 characters)</span></label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="reg-password" class="input-field" placeholder="Create a password" required autocomplete="new-password" minlength="6" />
+            <button type="button" class="toggle-pwd" onclick="togglePassword('reg-password', this)">👁️</button>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Confirm Password</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="reg-confirm" class="input-field" placeholder="Repeat your password" required autocomplete="new-password" />
+            <button type="button" class="toggle-pwd" onclick="togglePassword('reg-confirm', this)">👁️</button>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="register-btn">
+          <span class="btn-text">✨ Create My Account</span>
+          <span class="btn-spinner">⏳ Creating account...</span>
+        </button>
+
+        <div class="divider">or</div>
+
+        <button type="button" class="guest-btn" onclick="guestAccess()">
+          👤 Continue as Guest (no account needed)
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+  <script>
+    // ── Server base URL ──
+    // Ensure this matches the running backend port
+    const API = 'http://localhost:5001/api';
+
+    // ── Switch between Login / Register tabs ──
+    function switchTab(tab) {
+      document.getElementById('login-form').classList.toggle('active', tab === 'login');
+      document.getElementById('register-form').classList.toggle('active', tab === 'register');
+      document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+      document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+      clearMessages();
+    }
+
+    // ── Toggle password visibility ──
+    function togglePassword(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = '🙈';
+      } else {
+        input.type = 'password';
+        btn.textContent = '👁️';
+      }
+    }
+
+    // ── Show a message ──
+    function showMessage(id, msg, type) {
+      const el = document.getElementById(id);
+      el.textContent = (type === 'error' ? '⚠️ ' : '✅ ') + msg;
+      el.className = `auth-message ${type}`;
+    }
+
+    function clearMessages() {
+      ['login-msg', 'register-msg'].forEach(id => {
+        const el = document.getElementById(id);
+        el.className = 'auth-message';
+        el.textContent = '';
+      });
+    }
+
+    // ── Set loading state ──
+    function setLoading(btnId, loading) {
+      const btn = document.getElementById(btnId);
+      btn.disabled = loading;
+      btn.classList.toggle('loading', loading);
+    }
+
+    // ─────────────────────────────
+    // HANDLE LOGIN
+    // ─────────────────────────────
+    async function handleLogin(e) {
+      e.preventDefault(); // Prevent page reload
+      clearMessages();
+
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      setLoading('login-btn', true);
+
+      try {
+        // Call the login API
+        const response = await fetch(`${API}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          // Server returned an error (wrong password, etc.)
+          showMessage('login-msg', data.message || 'Login failed', 'error');
+          return;
+        }
+
+        // ✅ Login successful!
+        // Save the token and user info in localStorage
+        localStorage.setItem('studysync_token', data.token);
+        localStorage.setItem('studysync_user', JSON.stringify(data.user));
+
+        showMessage('login-msg', data.message, 'success');
+
+        // Redirect to the main app after a short delay
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 800);
+
+      } catch (err) {
+        // Network error — server not running?
+        showMessage('login-msg', 'Cannot connect to server. Is the server running? Run: node server/server.js', 'error');
+        console.error('Login error:', err);
+      } finally {
+        setLoading('login-btn', false);
+      }
+    }
+
+    // ─────────────────────────────
+    // HANDLE REGISTER
+    // ─────────────────────────────
+    async function handleRegister(e) {
+      e.preventDefault();
+      clearMessages();
+
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const confirm = document.getElementById('reg-confirm').value;
+
+      // Client-side validation
+      if (password !== confirm) {
+        showMessage('register-msg', 'Passwords do not match!', 'error');
+        return;
+      }
+      if (password.length < 6) {
+        showMessage('register-msg', 'Password must be at least 6 characters', 'error');
+        return;
+      }
+
+      setLoading('register-btn', true);
+
+      try {
+        const response = await fetch(`${API}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          showMessage('register-msg', data.message || 'Registration failed', 'error');
+          return;
+        }
+
+        // ✅ Registration successful!
+        localStorage.setItem('studysync_token', data.token);
+        localStorage.setItem('studysync_user', JSON.stringify(data.user));
+
+        showMessage('register-msg', data.message, 'success');
+
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1000);
+
+      } catch (err) {
+        showMessage('register-msg', 'Cannot connect to server. Is the server running? Run: node server/server.js', 'error');
+        console.error('Register error:', err);
+      } finally {
+        setLoading('register-btn', false);
+      }
+    }
+
+    // ─────────────────────────────
+    // GUEST ACCESS
+    // ─────────────────────────────
+    function guestAccess() {
+      // Store a guest flag and go to the main app
+      localStorage.setItem('studysync_guest', 'true');
+      localStorage.removeItem('studysync_token');
+      localStorage.removeItem('studysync_user');
+      window.location.href = 'index.html';
+    }
+
+    // ─────────────────────────────
+    // CHECK IF ALREADY LOGGED IN
+    // ─────────────────────────────
+    window.addEventListener('load', () => {
+      const token = localStorage.getItem('studysync_token');
+      if (token) {
+        // Already logged in — go to main app
+        window.location.href = 'index.html';
+      }
+    });
+  </script>
+</body>
+</html>
