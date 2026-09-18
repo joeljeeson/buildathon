@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudySync — Smart Academic Assistant</title>
+  <meta name="description" content="Automatically detect assignments and exams from WhatsApp messages and add them to your smart academic calendar with countdown reminders." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Animated background blobs -->
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
+  <div class="bg-blob blob-3"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">📚</div>
+      <span class="logo-text">StudySync</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" id="nav-dashboard" onclick="showView('dashboard')">
+        <span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" id="nav-calendar" onclick="showView('calendar')">
+        <span class="nav-icon">📅</span><span class="nav-label">Calendar</span>
+      </a>
+      <a href="#" class="nav-item" id="nav-reminders" onclick="showView('reminders')">
+        <span class="nav-icon">🔔</span><span class="nav-label">Reminders</span>
+        <span class="badge" id="reminder-badge">0</span>
+      </a>
+      <a href="#" class="nav-item" id="nav-events" onclick="showView('events')">
+        <span class="nav-icon">📋</span><span class="nav-label">All Events</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-clear-all" onclick="clearAllEvents()" id="clear-btn">
+        🗑️ Clear All
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <button class="hamburger" onclick="toggleSidebar()" id="hamburger">☰</button>
+      <div class="topbar-title">
+        <span id="view-title">Dashboard</span>
+      </div>
+      <div class="topbar-right">
+        <div class="notification-bell" onclick="showView('reminders')">
+          🔔
+          <span class="bell-badge" id="bell-badge" style="display:none">0</span>
+        </div>
+        <div class="time-display" id="time-display"></div>
+        <div class="user-chip" id="user-chip">
+          <span class="user-avatar">👤</span>
+          <span class="user-name" id="user-name-display">Guest</span>
+        </div>
+        <button class="logout-btn" id="logout-btn" onclick="logout()" title="Logout">🚪 Logout</button>
+      </div>
+    </header>
+
+    <!-- ===== DASHBOARD VIEW ===== -->
+    <div class="view active" id="view-dashboard">
+      <!-- Stats Row -->
+      <div class="stats-row">
+        <div class="stat-card" style="--accent: #a78bfa">
+          <div class="stat-icon">📝</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-assignments">0</div>
+            <div class="stat-label">Assignments</div>
+          </div>
+        </div>
+        <div class="stat-card" style="--accent: #f87171">
+          <div class="stat-icon">📖</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-exams">0</div>
+            <div class="stat-label">Exams</div>
+          </div>
+        </div>
+        <div class="stat-card" style="--accent: #34d399">
+          <div class="stat-icon">⏰</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-upcoming">0</div>
+            <div class="stat-label">Upcoming (7 days)</div>
+          </div>
+        </div>
+        <div class="stat-card" style="--accent: #60a5fa">
+          <div class="stat-icon">✅</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-total">0</div>
+            <div class="stat-label">Total Events</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Grid -->
+      <div class="dashboard-grid">
+        <!-- Paste Panel -->
+        <div class="card paste-panel">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="whatsapp-icon">💬</span>
+              Paste WhatsApp Messages
+            </div>
+            <div class="card-subtitle">Paste chat exports or notifications below</div>
+          </div>
+
+          <textarea
+            id="message-input"
+            class="message-textarea"
+            placeholder="Paste your WhatsApp messages here...&#10;&#10;Examples:&#10;• Assignment 2 is due on August 15 at 11:59 PM&#10;• Exam on Monday September 10 at 9 AM&#10;• Submit Lab Report by 25th August&#10;• Quiz tomorrow at 10:00 AM&#10;• Midterm exam next Friday&#10;&#10;StudySync will automatically detect dates, times &amp; subjects!"
+          ></textarea>
+
+          <div class="parse-actions">
+            <button class="btn-parse" id="btn-parse" onclick="parseMessages()">
+              <span class="btn-icon">🔍</span>
+              Detect Events
+            </button>
+            <button class="btn-secondary" onclick="loadSampleMessages()">
+              <span>📋</span> Load Sample
+            </button>
+          </div>
+
+          <!-- Parsed Results Preview -->
+          <div class="parsed-results" id="parsed-results" style="display:none">
+            <div class="results-header">
+              <span class="results-title">🎯 Detected Events</span>
+              <span class="results-count" id="results-count">0 found</span>
+            </div>
+            <div class="results-list" id="results-list"></div>
+            <button class="btn-add-all" id="btn-add-all" onclick="addAllToCalendar()">
+              ✅ Add All to Calendar
+            </button>
+          </div>
+        </div>
+
+        <!-- Mini Calendar -->
+        <div class="card calendar-panel">
+          <div class="card-header">
+            <div class="calendar-nav">
+              <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
+              <span class="cal-month-year" id="cal-month-year"></span>
+              <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+            </div>
+          </div>
+          <div class="calendar-grid" id="calendar-grid"></div>
+          <!-- Day Events Popup -->
+          <div class="day-events-popup" id="day-popup" style="display:none">
+            <div class="popup-header">
+              <span id="popup-date-title"></span>
+              <button onclick="closePopup()">✕</button>
+            </div>
+            <div id="popup-events-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upcoming Reminders -->
+      <div class="section-header">
+        <h2 class="section-title">⏰ Upcoming Reminders</h2>
+        <span class="section-subtitle">Events sorted by soonest deadline</span>
+      </div>
+      <div class="reminders-scroll" id="dash-reminders">
+        <div class="empty-reminders" id="empty-reminders">
+          <div class="empty-icon">📭</div>
+          <div class="empty-text">No events yet. Paste a WhatsApp message above to get started!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== CALENDAR VIEW ===== -->
+    <div class="view" id="view-calendar">
+      <div class="card full-calendar-card">
+        <div class="full-cal-header">
+          <button class="cal-nav-btn large" onclick="changeMonth(-1)">‹ Prev</button>
+          <h2 class="full-cal-title" id="full-cal-title"></h2>
+          <button class="cal-nav-btn large" onclick="changeMonth(1)">Next ›</button>
+        </div>
+        <div class="full-calendar-grid" id="full-calendar-grid"></div>
+      </div>
+    </div>
+
+    <!-- ===== REMINDERS VIEW ===== -->
+    <div class="view" id="view-reminders">
+      <div class="reminders-page" id="reminders-page">
+        <div class="empty-reminders" id="empty-reminders-page">
+          <div class="empty-icon">🔔</div>
+          <div class="empty-text">No reminders yet. Add some events to see countdowns here!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== EVENTS VIEW ===== -->
+    <div class="view" id="view-events">
+      <div class="events-toolbar">
+        <div class="filter-pills">
+          <button class="pill active" onclick="filterEvents('all', this)">All</button>
+          <button class="pill" onclick="filterEvents('assignment', this)">📝 Assignments</button>
+          <button class="pill" onclick="filterEvents('exam', this)">📖 Exams</button>
+          <button class="pill" onclick="filterEvents('quiz', this)">❓ Quizzes</button>
+          <button class="pill" onclick="filterEvents('other', this)">📌 Other</button>
+        </div>
+        <div class="search-box">
+          <input type="text" id="event-search" placeholder="🔍 Search events..." oninput="renderEventsView()" />
+        </div>
+      </div>
+      <div class="events-grid" id="events-grid">
+        <div class="empty-reminders">
+          <div class="empty-icon">📋</div>
+          <div class="empty-text">No events added yet.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ADD EVENT MODAL -->
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModal()" style="display:none"></div>
+  <div class="modal" id="add-event-modal" style="display:none">
+    <div class="modal-header">
+      <h3>Add / Edit Event</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <form class="modal-form" onsubmit="saveEvent(event)">
+      <div class="form-group">
+        <label>Event Title *</label>
+        <input type="text" id="modal-title" required placeholder="e.g. Math Assignment 2" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Type</label>
+          <select id="modal-type">
+            <option value="assignment">📝 Assignment</option>
+            <option value="exam">📖 Exam</option>
+            <option value="quiz">❓ Quiz</option>
+            <option value="other">📌 Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Subject / Course</label>
+          <input type="text" id="modal-subject" placeholder="e.g. Mathematics" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date *</label>
+          <input type="date" id="modal-date" required />
+        </div>
+        <div class="form-group">
+          <label>Time</label>
+          <input type="time" id="modal-time" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Reminder (minutes before)</label>
+        <select id="modal-reminder">
+          <option value="15">15 minutes</option>
+          <option value="30" selected>30 minutes</option>
+          <option value="60">1 hour</option>
+          <option value="120">2 hours</option>
+          <option value="1440">1 day</option>
+          <option value="2880">2 days</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="modal-notes" placeholder="Optional notes..." rows="2"></textarea>
+      </div>
+      <input type="hidden" id="modal-event-id" />
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn-parse">💾 Save Event</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- NOTIFICATION TOAST -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Auth guard — check login before loading app -->
+  <script>
+    (function() {
+      const token = localStorage.getItem('studysync_token');
+      const guest = localStorage.getItem('studysync_guest');
+      // If no token and not a guest, redirect to login page
+      if (!token && !guest) {
+        window.location.href = 'login.html';
+      }
+    })();
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>
