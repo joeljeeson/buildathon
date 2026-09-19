@@ -300,7 +300,7 @@ function extractDateFromText(text, now) {
   const lower = text.toLowerCase();
 
   // Pattern: DD/MM/YYYY or MM/DD/YYYY
-  let m = lower.match(/\b(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4}|\d{2})\b/);
+  let m = lower.match(/\b(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4}|\d{2})\b/);
   if (m) {
     let year = parseInt(m[3]); if (year < 100) year += 2000;
     const date = new Date(year, parseInt(m[2])-1, parseInt(m[1]));
@@ -395,7 +395,7 @@ function extractDate(lower, original) {
 
 function extractTime(lower) {
   // HH:MM AM/PM
-  let m = lower.match(/\b(\d{1,2}):(\d{2})\s*(am|pm)?\b/);
+  let m = lower.match(/\b(\d{1,2})[:.](\d{2})\s*(am|pm)?\b/);
   if (m) {
     let h = parseInt(m[1]), min = m[2];
     if (m[3] === 'pm' && h < 12) h += 12;
@@ -411,7 +411,7 @@ function extractTime(lower) {
     return `${String(h).padStart(2,'0')}:00`;
   }
   // 11:59 PM
-  m = lower.match(/(\d{1,2}):(\d{2})\s*(pm|am)?/);
+  m = lower.match(/(\d{1,2})[:.](\d{2})\s*(pm|am)?/);
   if (m) {
     let h = parseInt(m[1]), min = m[2];
     if (m[3] === 'pm' && h < 12) h += 12;

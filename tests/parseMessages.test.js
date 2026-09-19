@@ -52,3 +52,12 @@ test('parser extracts assignment-style events from the provided WhatsApp data', 
   assert.ok(dates.includes('2026-08-07'));
   assert.ok(events.some((event) => event.title.toLowerCase().includes('assignment')));
 });
+
+test('parser accepts dot-separated times without treating them as dates', () => {
+  const context = loadAppContext();
+  const events = context.extractEvents('Mathematics exam is on August 15 at 11.30 AM.');
+
+  assert.equal(events.length, 1);
+  assert.equal(events[0].date, '2026-08-15');
+  assert.equal(events[0].time, '11:30');
+});

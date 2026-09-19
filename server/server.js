@@ -50,13 +50,13 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/events', require('./routes/events'));
 
 // ── Root Route ──
-// When someone visits http://localhost:5000, redirect to login page
+// When someone visits the local server, redirect to the login page
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'login.html'));
 });
 
 // ── Health Check Route ──
-// Visit http://localhost:5000/api/health to check if server is running
+// Visit http://localhost:5001/api/health to check if the server is running
 app.get('/api/health', (req, res) => {
   res.json({
     status: '✅ Server is running!',

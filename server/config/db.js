@@ -20,9 +20,9 @@ const connectDB = async () => {
     // If successful, print a success message
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
-    // If it fails, print the error without crashing the serverless environment
+    // If it fails, print the error without crashing the local server
     console.error(`❌ MongoDB Connection Error: ${error.message}`);
-    console.log('💡 Make sure your MongoDB URI is valid in Vercel environment variables.');
+    console.log('💡 Make sure MongoDB is running and MONGO_URI in server/.env is valid.');
   }
 };
 
