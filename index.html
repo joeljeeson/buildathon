@@ -287,7 +287,7 @@
   <script>
     (function() {
       const token = localStorage.getItem('studysync_token');
-      const guest = localStorage.getItem('studysync_guest');
+      const guest = localStorage.getItem('studysync_guest_access');
       // If no token and not a guest, redirect to login page
       if (!token && !guest) {
         window.location.href = 'login.html';

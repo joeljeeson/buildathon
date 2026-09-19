@@ -567,6 +567,7 @@
     function guestAccess() {
       // Store a guest flag and go to the main app
       localStorage.setItem('studysync_guest', 'true');
+      localStorage.setItem('studysync_guest_access', 'true');
       localStorage.removeItem('studysync_token');
       localStorage.removeItem('studysync_user');
       window.location.href = 'index.html';
