@@ -410,9 +410,8 @@
 
   <script>
     // ── Server base URL ──
-    // GitHub Pages serves the frontend only, so it uses guest/local storage mode.
+    // Use the same origin in production and local dev.
     const API = '/api';
-    const IS_STATIC_HOST = window.location.hostname.endsWith('.github.io');
 
     // ── Switch between Login / Register tabs ──
     function switchTab(tab) {
@@ -580,10 +579,6 @@
       const token = localStorage.getItem('studysync_token');
       if (token) {
         // Already logged in — go to main app
-        window.location.href = 'index.html';
-      } else if (IS_STATIC_HOST) {
-        // GitHub Pages cannot run the Express/MongoDB API.
-        localStorage.setItem('studysync_guest', 'true');
         window.location.href = 'index.html';
       }
     });
