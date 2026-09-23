@@ -3,7 +3,7 @@
 // =============================================
 // A "schema" describes the shape of data in MongoDB.
 // Think of it like a form template for each user.
-
+const db = require("../config/db");
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs'); // For hashing passwords
 
