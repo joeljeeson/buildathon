@@ -705,6 +705,39 @@ body {
   box-shadow: 0 24px 64px rgba(18, 22, 25, 0.2);
 }
 
+/* ---- Index Page Utility Theme Normalization ---- */
+body *[class*="bg-slate-"] {
+  background-color: var(--bg-card) !important;
+}
+body *[class*="bg-purple-"] {
+  background-color: var(--gold-dim) !important;
+}
+body *[class*="text-slate-"] {
+  color: var(--text-secondary) !important;
+}
+body *[class*="text-purple-"] {
+  color: #B48A14 !important;
+}
+body *[class*="border-slate-"] {
+  border-color: var(--border) !important;
+}
+body *[class*="border-purple-"] {
+  border-color: var(--border-hover) !important;
+}
+body *[class*="hover\\:bg-slate-"]:hover {
+  background-color: var(--bg-secondary) !important;
+}
+body *[class*="hover\\:text-white"]:hover {
+  color: var(--text-primary) !important;
+}
+body *[class*="placeholder-slate-"]::placeholder {
+  color: var(--text-dim) !important;
+}
+body input[class*="bg-transparent"],
+body select[class*="bg-slate-"] {
+  color: var(--text-primary) !important;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
