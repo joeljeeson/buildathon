@@ -17,6 +17,7 @@ const { protect } = require('../middleware/auth');
 // A JWT is like a "login ticket" — the frontend stores this and sends it
 // with every request to prove the user is logged in.
 const generateToken = (userId) => {
+  console.log("JWT_SECRET exists:", !!process.env.JWT_SECRET);
   return jwt.sign(
     { id: userId },           // Data stored inside the token
     process.env.JWT_SECRET,    // Secret key to sign with
