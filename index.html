@@ -5,41 +5,81 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>StudySync — Smart Academic Assistant</title>
   <meta name="description" content="Automatically detect assignments and exams from WhatsApp messages and add them to your smart academic calendar with countdown reminders." />
+  
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Bootstrap 5 CSS & Icons CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              gold: '#E7DFC6',
+              golddark: '#C5B48E',
+              sage: '#5FA893',
+              terracotta: '#E05A47',
+              amber: '#E5A93C',
+              surface: '#121619',
+              card: 'rgba(26, 32, 36, 0.85)'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom Bespoke Styles -->
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <!-- Animated background blobs -->
+<body class="bg-[#F8FAF9] text-[#121619] antialiased selection:bg-[#E7DFC6] selection:text-[#121619]">
+  <!-- Animated Background Blobs -->
   <div class="bg-blob blob-1"></div>
   <div class="bg-blob blob-2"></div>
   <div class="bg-blob blob-3"></div>
 
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon">📚</div>
-      <span class="logo-text">StudySync</span>
+    <div class="sidebar-logo flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="logo-icon text-3xl">📚</div>
+        <span class="logo-text font-extrabold text-xl tracking-tight">StudySync</span>
+      </div>
+      <span class="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">v2.0</span>
     </div>
+    
     <nav class="sidebar-nav">
       <a href="#" class="nav-item active" id="nav-dashboard" onclick="showView('dashboard')">
-        <span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span>
+        <span class="nav-icon"><i class="bi bi-grid-1x2-fill"></i></span>
+        <span class="nav-label">Dashboard</span>
       </a>
       <a href="#" class="nav-item" id="nav-calendar" onclick="showView('calendar')">
-        <span class="nav-icon">📅</span><span class="nav-label">Calendar</span>
+        <span class="nav-icon"><i class="bi bi-calendar3"></i></span>
+        <span class="nav-label">Calendar</span>
       </a>
       <a href="#" class="nav-item" id="nav-reminders" onclick="showView('reminders')">
-        <span class="nav-icon">🔔</span><span class="nav-label">Reminders</span>
-        <span class="badge" id="reminder-badge">0</span>
+        <span class="nav-icon"><i class="bi bi-bell-fill"></i></span>
+        <span class="nav-label">Reminders</span>
+        <span class="badge-count" id="reminder-badge">0</span>
       </a>
       <a href="#" class="nav-item" id="nav-events" onclick="showView('events')">
-        <span class="nav-icon">📋</span><span class="nav-label">All Events</span>
+        <span class="nav-icon"><i class="bi bi-collection-play-fill"></i></span>
+        <span class="nav-label">All Events</span>
       </a>
     </nav>
-    <div class="sidebar-footer">
-      <button class="btn-clear-all" onclick="clearAllEvents()" id="clear-btn">
-        🗑️ Clear All
+
+    <div class="sidebar-footer p-3">
+      <button class="btn-clear-all w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 transition-all duration-200" onclick="clearAllEvents()" id="clear-btn">
+        <i class="bi bi-trash3-fill"></i> Clear All
       </button>
     </div>
   </aside>
@@ -48,51 +88,73 @@
   <main class="main-content">
     <!-- TOP BAR -->
     <header class="topbar">
-      <button class="hamburger" onclick="toggleSidebar()" id="hamburger">☰</button>
-      <div class="topbar-title">
-        <span id="view-title">Dashboard</span>
+      <div class="flex items-center gap-3">
+        <button class="hamburger text-slate-300 hover:text-white text-xl" onclick="toggleSidebar()" id="hamburger"><i class="bi bi-list"></i></button>
+        <div class="topbar-title">
+          <span id="view-title" class="font-bold text-lg text-slate-100">Dashboard</span>
+        </div>
       </div>
-      <div class="topbar-right">
-        <div class="notification-bell" onclick="showView('reminders')">
-          🔔
+
+      <div class="topbar-right flex items-center gap-4">
+        <!-- Live Quick Search Pill -->
+        <div class="header-search hidden md:flex items-center gap-2 bg-slate-900/60 border border-slate-700/60 rounded-full px-3 py-1.5 focus-within:border-purple-400/80 transition-all">
+          <i class="bi bi-search text-slate-400 text-sm"></i>
+          <input type="text" id="topbar-search-input" placeholder="Quick find event..." oninput="syncTopbarSearch(this.value)" class="bg-transparent text-xs text-slate-200 focus:outline-none w-36 focus:w-48 transition-all" />
+        </div>
+
+        <div class="notification-bell relative cursor-pointer p-2 rounded-full hover:bg-white/5 transition-colors" onclick="showView('reminders')" title="Reminders">
+          <i class="bi bi-bell text-lg text-slate-300"></i>
           <span class="bell-badge" id="bell-badge" style="display:none">0</span>
         </div>
-        <div class="time-display" id="time-display"></div>
-        <div class="user-chip" id="user-chip">
-          <span class="user-avatar">👤</span>
-          <span class="user-name" id="user-name-display">Guest</span>
+
+        <div class="time-display text-xs font-mono px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-800 text-purple-300 font-semibold" id="time-display">--:--:--</div>
+
+        <div class="user-chip flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/60 border border-slate-700/60">
+          <span class="user-avatar text-sm">👤</span>
+          <span class="user-name text-xs font-semibold text-slate-200" id="user-name-display">Guest</span>
         </div>
-        <button class="logout-btn" id="logout-btn" onclick="logout()" title="Logout">🚪 Logout</button>
+
+        <button class="logout-btn px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-500/10 text-rose-300 border border-rose-500/20 hover:bg-rose-500/20 transition-all" id="logout-btn" onclick="logout()" title="Logout">
+          <i class="bi bi-box-arrow-right"></i> Logout
+        </button>
       </div>
     </header>
 
     <!-- ===== DASHBOARD VIEW ===== -->
     <div class="view active" id="view-dashboard">
       <!-- Stats Row -->
-      <div class="stats-row">
+      <div class="stats-row grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="stat-card" style="--accent: #a78bfa">
-          <div class="stat-icon">📝</div>
+          <div class="stat-icon-wrapper text-purple-400 bg-purple-500/10 border border-purple-500/20">
+            <i class="bi bi-journal-text text-xl"></i>
+          </div>
           <div class="stat-info">
             <div class="stat-value" id="stat-assignments">0</div>
             <div class="stat-label">Assignments</div>
           </div>
         </div>
         <div class="stat-card" style="--accent: #f87171">
-          <div class="stat-icon">📖</div>
+          <div class="stat-icon-wrapper text-rose-400 bg-rose-500/10 border border-rose-500/20">
+            <i class="bi bi-book-half text-xl"></i>
+          </div>
           <div class="stat-info">
             <div class="stat-value" id="stat-exams">0</div>
             <div class="stat-label">Exams</div>
           </div>
         </div>
         <div class="stat-card" style="--accent: #34d399">
-          <div class="stat-icon">⏰</div>
+          <div class="stat-icon-wrapper text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+            <i class="bi bi-clock-history text-xl"></i>
+          </div>
           <div class="stat-info">
             <div class="stat-value" id="stat-upcoming">0</div>
             <div class="stat-label">Upcoming (7 days)</div>
           </div>
         </div>
         <div class="stat-card" style="--accent: #60a5fa">
-          <div class="stat-icon">✅</div>
+          <div class="stat-icon-wrapper text-blue-400 bg-blue-500/10 border border-blue-500/20">
+            <i class="bi bi-check2-circle text-xl"></i>
+          </div>
           <div class="stat-info">
             <div class="stat-value" id="stat-total">0</div>
             <div class="stat-label">Total Events</div>
@@ -104,39 +166,39 @@
       <div class="dashboard-grid">
         <!-- Paste Panel -->
         <div class="card paste-panel">
-          <div class="card-header">
-            <div class="card-title">
-              <span class="whatsapp-icon">💬</span>
+          <div class="card-header flex items-center justify-between">
+            <div class="card-title flex items-center gap-2 font-bold text-base text-slate-100">
+              <span class="whatsapp-icon text-emerald-400 text-lg"><i class="bi bi-whatsapp"></i></span>
               Paste WhatsApp Messages
             </div>
-            <div class="card-subtitle">Paste chat exports or notifications below</div>
+            <div class="card-subtitle text-xs text-slate-400">Smart NLP date & exam detector</div>
           </div>
 
           <textarea
             id="message-input"
             class="message-textarea"
-            placeholder="Paste your WhatsApp messages here...&#10;&#10;Examples:&#10;• Assignment 2 is due on August 15 at 11:59 PM&#10;• Exam on Monday September 10 at 9 AM&#10;• Submit Lab Report by 25th August&#10;• Quiz tomorrow at 10:00 AM&#10;• Midterm exam next Friday&#10;&#10;StudySync will automatically detect dates, times &amp; subjects!"
+            placeholder="Paste your WhatsApp chat messages here...&#10;&#10;Examples:&#10;• Assignment 2 is due on August 15 at 11:59 PM&#10;• Exam on Monday September 10 at 9 AM&#10;• Submit Lab Report by 25th August&#10;• Quiz tomorrow at 10:00 AM&#10;&#10;StudySync automatically detects deadlines, times &amp; course subjects!"
           ></textarea>
 
           <div class="parse-actions">
             <button class="btn-parse" id="btn-parse" onclick="parseMessages()">
-              <span class="btn-icon">🔍</span>
+              <span class="btn-icon"><i class="bi bi-stars"></i></span>
               Detect Events
             </button>
             <button class="btn-secondary" onclick="loadSampleMessages()">
-              <span>📋</span> Load Sample
+              <i class="bi bi-file-earmark-text"></i> Load Sample
             </button>
           </div>
 
           <!-- Parsed Results Preview -->
           <div class="parsed-results" id="parsed-results" style="display:none">
-            <div class="results-header">
-              <span class="results-title">🎯 Detected Events</span>
-              <span class="results-count" id="results-count">0 found</span>
+            <div class="results-header flex items-center justify-between">
+              <span class="results-title font-bold text-sm text-emerald-300 flex items-center gap-1.5"><i class="bi bi-check-all"></i> Detected Events</span>
+              <span class="results-count badge bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" id="results-count">0 found</span>
             </div>
             <div class="results-list" id="results-list"></div>
-            <button class="btn-add-all" id="btn-add-all" onclick="addAllToCalendar()">
-              ✅ Add All to Calendar
+            <button class="btn-add-all mt-3 w-full py-2.5 rounded-xl font-bold text-xs bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2" id="btn-add-all" onclick="addAllToCalendar()">
+              <i class="bi bi-calendar-plus-fill"></i> Add All to Calendar
             </button>
           </div>
         </div>
@@ -144,18 +206,19 @@
         <!-- Mini Calendar -->
         <div class="card calendar-panel">
           <div class="card-header">
-            <div class="calendar-nav">
-              <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
-              <span class="cal-month-year" id="cal-month-year"></span>
-              <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+            <div class="calendar-nav flex items-center justify-between w-full">
+              <button class="cal-nav-btn hover:bg-slate-800 rounded-lg p-1" onclick="changeMonth(-1)"><i class="bi bi-chevron-left"></i></button>
+              <span class="cal-month-year font-bold text-slate-200" id="cal-month-year"></span>
+              <button class="cal-nav-btn hover:bg-slate-800 rounded-lg p-1" onclick="changeMonth(1)"><i class="bi bi-chevron-right"></i></button>
             </div>
           </div>
-          <div class="calendar-grid" id="calendar-grid"></div>
+          <div class="calendar-grid mt-2" id="calendar-grid"></div>
+          
           <!-- Day Events Popup -->
           <div class="day-events-popup" id="day-popup" style="display:none">
             <div class="popup-header">
-              <span id="popup-date-title"></span>
-              <button onclick="closePopup()">✕</button>
+              <span id="popup-date-title" class="font-bold text-sm text-purple-300"></span>
+              <button onclick="closePopup()" class="text-slate-400 hover:text-white"><i class="bi bi-x-lg"></i></button>
             </div>
             <div id="popup-events-list"></div>
           </div>
@@ -163,14 +226,17 @@
       </div>
 
       <!-- Upcoming Reminders -->
-      <div class="section-header">
-        <h2 class="section-title">⏰ Upcoming Reminders</h2>
-        <span class="section-subtitle">Events sorted by soonest deadline</span>
+      <div class="section-header mt-8 mb-4">
+        <div class="flex items-center gap-2">
+          <h2 class="section-title text-lg font-bold text-slate-100"><i class="bi bi-hourglass-split text-amber-400 me-2"></i>Upcoming Reminders</h2>
+        </div>
+        <span class="section-subtitle text-xs text-slate-400">Events ordered by urgency and soonest deadline</span>
       </div>
+      
       <div class="reminders-scroll" id="dash-reminders">
         <div class="empty-reminders" id="empty-reminders">
-          <div class="empty-icon">📭</div>
-          <div class="empty-text">No events yet. Paste a WhatsApp message above to get started!</div>
+          <div class="empty-icon text-4xl mb-2">📭</div>
+          <div class="empty-text text-sm text-slate-400">No events yet. Paste a WhatsApp message above or click 'Manual Add'!</div>
         </div>
       </div>
     </div>
@@ -178,10 +244,10 @@
     <!-- ===== CALENDAR VIEW ===== -->
     <div class="view" id="view-calendar">
       <div class="card full-calendar-card">
-        <div class="full-cal-header">
-          <button class="cal-nav-btn large" onclick="changeMonth(-1)">‹ Prev</button>
-          <h2 class="full-cal-title" id="full-cal-title"></h2>
-          <button class="cal-nav-btn large" onclick="changeMonth(1)">Next ›</button>
+        <div class="full-cal-header flex items-center justify-between mb-4">
+          <button class="cal-nav-btn large px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition-all" onclick="changeMonth(-1)"><i class="bi bi-chevron-left me-1"></i> Prev</button>
+          <h2 class="full-cal-title text-xl font-bold text-slate-100" id="full-cal-title"></h2>
+          <button class="cal-nav-btn large px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition-all" onclick="changeMonth(1)">Next <i class="bi bi-chevron-right ms-1"></i></button>
         </div>
         <div class="full-calendar-grid" id="full-calendar-grid"></div>
       </div>
@@ -191,28 +257,97 @@
     <div class="view" id="view-reminders">
       <div class="reminders-page" id="reminders-page">
         <div class="empty-reminders" id="empty-reminders-page">
-          <div class="empty-icon">🔔</div>
-          <div class="empty-text">No reminders yet. Add some events to see countdowns here!</div>
+          <div class="empty-icon text-4xl mb-2">🔔</div>
+          <div class="empty-text text-sm text-slate-400">No reminders yet. Add some events to see countdowns here!</div>
         </div>
       </div>
     </div>
 
-    <!-- ===== EVENTS VIEW ===== -->
+    <!-- ===== EVENTS VIEW WITH NEW-GEN LIVE FILTER ===== -->
     <div class="view" id="view-events">
-      <div class="events-toolbar">
-        <div class="filter-pills">
-          <button class="pill active" onclick="filterEvents('all', this)">All</button>
-          <button class="pill" onclick="filterEvents('assignment', this)">📝 Assignments</button>
-          <button class="pill" onclick="filterEvents('exam', this)">📖 Exams</button>
-          <button class="pill" onclick="filterEvents('quiz', this)">❓ Quizzes</button>
-          <button class="pill" onclick="filterEvents('other', this)">📌 Other</button>
+      <!-- Live Filter Control Panel -->
+      <div class="live-filter-panel card mb-6 p-4 border border-purple-500/20 shadow-2xl backdrop-blur-xl">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
+          <!-- Main Live Search Bar -->
+          <div class="relative flex-1">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <i class="bi bi-search text-base"></i>
+            </div>
+            <input 
+              type="text" 
+              id="event-search" 
+              placeholder="Live filter by title, subject, notes, or date..." 
+              oninput="renderEventsView()"
+              class="w-full pl-10 pr-10 py-2.5 text-sm bg-slate-950/80 border border-slate-700/70 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-all"
+            />
+            <button 
+              id="clear-search-btn" 
+              onclick="clearSearch()" 
+              title="Clear search" 
+              class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-200 transition-colors hidden"
+            >
+              <i class="bi bi-x-circle-fill"></i>
+            </button>
+          </div>
+
+          <!-- Controls: Sort & Layout Mode & Manual Add -->
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-slate-400 font-medium hidden sm:inline"><i class="bi bi-sort-down me-1"></i>Sort:</span>
+              <select id="event-sort" onchange="renderEventsView()" class="bg-slate-950/80 border border-slate-700/70 text-slate-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-purple-400">
+                <option value="date-asc">📅 Date (Soonest first)</option>
+                <option value="date-desc">📅 Date (Furthest first)</option>
+                <option value="title-asc">🔤 Title (A to Z)</option>
+                <option value="urgent-first">🔥 Urgency (< 48 hrs)</option>
+                <option value="type">🏷️ Event Type</option>
+              </select>
+            </div>
+
+            <!-- View Switcher -->
+            <div class="view-mode-toggle flex bg-slate-950/80 p-1 border border-slate-800 rounded-xl">
+              <button class="view-mode-btn active px-3 py-1 text-xs rounded-lg font-medium transition-all" id="btn-view-grid" onclick="setEventsViewMode('grid')">
+                <i class="bi bi-grid-fill me-1"></i>Grid
+              </button>
+              <button class="view-mode-btn px-3 py-1 text-xs rounded-lg font-medium text-slate-400 hover:text-slate-200 transition-all" id="btn-view-list" onclick="setEventsViewMode('list')">
+                <i class="bi bi-list-task me-1"></i>List
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="search-box">
-          <input type="text" id="event-search" placeholder="🔍 Search events..." oninput="renderEventsView()" />
+
+        <!-- Filter Category Pills with Live Dynamic Count Badges -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800/80">
+          <div class="filter-pills flex flex-wrap items-center gap-2">
+            <button class="pill active" onclick="filterEvents('all', this)">
+              All <span class="pill-badge" id="filter-count-all">0</span>
+            </button>
+            <button class="pill" onclick="filterEvents('assignment', this)">
+              📝 Assignments <span class="pill-badge" id="filter-count-assignment">0</span>
+            </button>
+            <button class="pill" onclick="filterEvents('exam', this)">
+              📖 Exams <span class="pill-badge" id="filter-count-exam">0</span>
+            </button>
+            <button class="pill" onclick="filterEvents('quiz', this)">
+              ❓ Quizzes <span class="pill-badge" id="filter-count-quiz">0</span>
+            </button>
+            <button class="pill pill-urgent" onclick="filterEvents('urgent', this)">
+              🔥 Urgent <span class="pill-badge bg-rose-500/20 text-rose-300" id="filter-count-urgent">0</span>
+            </button>
+            <button class="pill" onclick="filterEvents('other', this)">
+              📌 Other <span class="pill-badge" id="filter-count-other">0</span>
+            </button>
+          </div>
+
+          <!-- Dynamic Live Filter Stats -->
+          <div class="text-xs font-mono text-slate-400 flex items-center gap-2" id="filter-stats-text">
+            <span>Showing <strong class="text-purple-300" id="stat-showing-count">0</strong> of <span id="stat-total-count">0</span> events</span>
+          </div>
         </div>
       </div>
-      <div class="events-grid" id="events-grid">
-        <div class="empty-reminders">
+
+      <!-- Events Grid / List Container -->
+      <div class="events-grid mode-grid" id="events-grid">
+        <div class="empty-reminders col-span-full">
           <div class="empty-icon">📋</div>
           <div class="empty-text">No events added yet.</div>
         </div>
@@ -220,21 +355,21 @@
     </div>
   </main>
 
-  <!-- ADD EVENT MODAL -->
+  <!-- ADD / EDIT EVENT MODAL -->
   <div class="modal-overlay" id="modal-overlay" onclick="closeModal()" style="display:none"></div>
-  <div class="modal" id="add-event-modal" style="display:none">
-    <div class="modal-header">
-      <h3>Add / Edit Event</h3>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+  <div class="modal card" id="add-event-modal" style="display:none">
+    <div class="modal-header flex items-center justify-between pb-3 border-b border-slate-800">
+      <h3 class="font-bold text-base text-slate-100 flex items-center gap-2"><i class="bi bi-pencil-square text-purple-400"></i> <span id="modal-heading-text">Add Event</span></h3>
+      <button class="modal-close text-slate-400 hover:text-white" onclick="closeModal()"><i class="bi bi-x-lg"></i></button>
     </div>
-    <form class="modal-form" onsubmit="saveEvent(event)">
+    <form class="modal-form pt-4" onsubmit="saveEvent(event)">
       <div class="form-group">
-        <label>Event Title *</label>
+        <label class="text-xs font-semibold text-slate-300">Event Title *</label>
         <input type="text" id="modal-title" required placeholder="e.g. Math Assignment 2" />
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Type</label>
+          <label class="text-xs font-semibold text-slate-300">Type</label>
           <select id="modal-type">
             <option value="assignment">📝 Assignment</option>
             <option value="exam">📖 Exam</option>
@@ -243,22 +378,22 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Subject / Course</label>
+          <label class="text-xs font-semibold text-slate-300">Subject / Course</label>
           <input type="text" id="modal-subject" placeholder="e.g. Mathematics" />
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Date *</label>
+          <label class="text-xs font-semibold text-slate-300">Date *</label>
           <input type="date" id="modal-date" required />
         </div>
         <div class="form-group">
-          <label>Time</label>
+          <label class="text-xs font-semibold text-slate-300">Time</label>
           <input type="time" id="modal-time" />
         </div>
       </div>
       <div class="form-group">
-        <label>Reminder (minutes before)</label>
+        <label class="text-xs font-semibold text-slate-300">Reminder (minutes before)</label>
         <select id="modal-reminder">
           <option value="15">15 minutes</option>
           <option value="30" selected>30 minutes</option>
@@ -269,21 +404,21 @@
         </select>
       </div>
       <div class="form-group">
-        <label>Notes</label>
-        <textarea id="modal-notes" placeholder="Optional notes..." rows="2"></textarea>
+        <label class="text-xs font-semibold text-slate-300">Notes</label>
+        <textarea id="modal-notes" placeholder="Optional details..." rows="2"></textarea>
       </div>
       <input type="hidden" id="modal-event-id" />
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
-        <button type="submit" class="btn-parse">💾 Save Event</button>
+      <div class="modal-actions pt-2 flex items-center justify-end gap-3">
+        <button type="button" class="btn-secondary px-4 py-2 rounded-xl text-xs" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn-parse px-5 py-2 rounded-xl text-xs font-semibold">💾 Save Event</button>
       </div>
     </form>
   </div>
 
-  <!-- NOTIFICATION TOAST -->
+  <!-- NOTIFICATION TOAST CONTAINER -->
   <div class="toast-container" id="toast-container"></div>
 
-  <!-- Auth guard — check login before loading app -->
+  <!-- Auth Guard -->
   <script>
     (function() {
       const token = localStorage.getItem('studysync_token');
@@ -294,6 +429,8 @@
       }
     })();
   </script>
+
+  <!-- Application Scripts -->
   <script src="app.js"></script>
   <script src="dueAlerts.js"></script>
 </body>

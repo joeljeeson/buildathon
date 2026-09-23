@@ -48,10 +48,10 @@ let currentYear = new Date().getFullYear();
 let editingEventId = null;
 
 const TYPE_COLORS = {
-  assignment: 'var(--blue)',
-  exam: 'var(--red)',
-  quiz: 'var(--yellow)',
-  other: 'var(--purple)',
+  assignment: 'var(--sage)',
+  exam: 'var(--terracotta)',
+  quiz: 'var(--amber)',
+  other: 'var(--gold)',
 };
 
 const TYPE_LABELS = {
@@ -141,6 +141,7 @@ function renderAll() {
   renderFullCalendar();
   renderDashReminders();
   renderRemindersPage();
+  updateFilterBadges();
   renderEventsView();
   updateBadges();
 }
@@ -737,6 +738,7 @@ function updateBadges() {
 function renderMiniCalendar() {
   const grid = document.getElementById('calendar-grid');
   const title = document.getElementById('cal-month-year');
+  if (!grid || !title) return;
 
   const date = new Date(currentYear, currentMonth, 1);
   title.textContent = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -751,7 +753,7 @@ function renderMiniCalendar() {
 
   // Prev month days
   for (let i = startDay - 1; i >= 0; i--) {
-    grid.innerHTML += `<div class="cal-day other-month">${prevDays - i}</div>`;
+    grid.innerHTML += `<div class="cal-day other-month"><div class="cal-day-num">${prevDays - i}</div></div>`;
   }
 
   // Current month days
@@ -759,20 +761,31 @@ function renderMiniCalendar() {
     const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dayDate = new Date(currentYear, currentMonth, d);
     const isToday = dayDate.getTime() === today.getTime();
-    const dayEvents = events.filter(e => e.date === dateStr);
-    const hasExam = dayEvents.some(e => e.type === 'exam');
+    
+    const dayEvents = events.filter(e => {
+      if (!e.date) return false;
+      const rawDate = e.date.split('T')[0];
+      const parts = rawDate.split('-');
+      if (parts.length === 3) {
+        const norm = `${parts[0]}-${String(parts[1]).padStart(2,'0')}-${String(parts[2]).padStart(2,'0')}`;
+        return norm === dateStr;
+      }
+      return rawDate === dateStr;
+    });
+
     const hasEvents = dayEvents.length > 0;
 
-    const dots = dayEvents.slice(0,3).map(e => {
-      const c = e.type === 'exam' ? 'var(--red)' : e.type === 'quiz' ? 'var(--yellow)' : e.type === 'assignment' ? 'var(--blue)' : 'var(--purple)';
-      return `<div class="event-dot" style="background:${c}"></div>`;
-    }).join('');
+    const chips = dayEvents.slice(0, 2).map(e =>
+      `<div class="mini-cal-chip chip-${e.type}" title="${escapeHtml(e.title)}">${escapeHtml(e.title.substring(0, 10))}${e.title.length > 10 ? '…' : ''}</div>`
+    ).join('');
+
+    const more = dayEvents.length > 2 ? `<div style="font-size:9px; font-weight:700; color:var(--text-secondary)">+${dayEvents.length - 2} more</div>` : '';
 
     grid.innerHTML += `
-      <div class="cal-day ${isToday ? 'today' : ''} ${hasEvents ? (hasExam ? 'has-exam' : 'has-events') : ''}"
-           onclick="showDayPopup('${dateStr}', ${d})">
-        ${d}
-        ${dots ? `<div class="event-dot-row">${dots}</div>` : ''}
+      <div class="cal-day ${isToday ? 'today' : ''} ${hasEvents ? 'has-events' : ''}" onclick="showDayPopup('${dateStr}', ${d})">
+        <div class="cal-day-num">${d}</div>
+        ${chips}
+        ${more}
       </div>`;
   }
 
@@ -781,7 +794,7 @@ function renderMiniCalendar() {
   const remainder = totalCells % 7;
   if (remainder > 0) {
     for (let d = 1; d <= 7 - remainder; d++) {
-      grid.innerHTML += `<div class="cal-day other-month">${d}</div>`;
+      grid.innerHTML += `<div class="cal-day other-month"><div class="cal-day-num">${d}</div></div>`;
     }
   }
 }
@@ -964,57 +977,196 @@ function updateCountdowns() {
 }
 
 // ══════════════════════════════════════════════
-// EVENTS VIEW
+// NEW-GEN LIVE FILTER & EVENTS VIEW SYSTEM
 // ══════════════════════════════════════════════
+let currentViewMode = 'grid'; // 'grid' | 'list'
+
+function setEventsViewMode(mode) {
+  currentViewMode = mode;
+  const grid = document.getElementById('events-grid');
+  const btnGrid = document.getElementById('btn-view-grid');
+  const btnList = document.getElementById('btn-view-list');
+
+  if (grid) {
+    grid.className = `events-grid mode-${mode}`;
+  }
+  if (btnGrid) btnGrid.classList.toggle('active', mode === 'grid');
+  if (btnList) btnList.classList.toggle('active', mode === 'list');
+  renderEventsView();
+}
+
+function clearSearch() {
+  const searchInput = document.getElementById('event-search');
+  const topbarInput = document.getElementById('topbar-search-input');
+  if (searchInput) searchInput.value = '';
+  if (topbarInput) topbarInput.value = '';
+  const clearBtn = document.getElementById('clear-search-btn');
+  if (clearBtn) clearBtn.classList.add('hidden');
+  renderEventsView();
+}
+
+function syncTopbarSearch(val) {
+  const searchInput = document.getElementById('event-search');
+  if (searchInput) {
+    searchInput.value = val;
+  }
+  if (typeof showView === 'function') {
+    showView('events');
+  }
+  renderEventsView();
+}
+
 function filterEvents(type, btn) {
   currentFilter = type;
-  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.filter-pills .pill').forEach(p => p.classList.remove('active'));
   if (btn) btn.classList.add('active');
   renderEventsView();
+}
+
+function isEventUrgent(ev) {
+  if (!ev.date) return false;
+  const eventTime = new Date(`${ev.date}T${ev.time || '23:59'}:00`);
+  const now = new Date();
+  const diffHours = (eventTime - now) / (1000 * 60 * 60);
+  return diffHours >= 0 && diffHours <= 48; // Due within 48 hours
+}
+
+function updateFilterBadges() {
+  const counts = {
+    all: events.length,
+    assignment: 0,
+    exam: 0,
+    quiz: 0,
+    urgent: 0,
+    other: 0,
+  };
+
+  events.forEach(ev => {
+    if (counts[ev.type] !== undefined) {
+      counts[ev.type]++;
+    } else {
+      counts.other++;
+    }
+    if (isEventUrgent(ev)) {
+      counts.urgent++;
+    }
+  });
+
+  for (const key in counts) {
+    const badgeEl = document.getElementById(`filter-count-${key}`);
+    if (badgeEl) badgeEl.textContent = counts[key];
+  }
+
+  const statShowing = document.getElementById('stat-showing-count');
+  const statTotal = document.getElementById('stat-total-count');
+  if (statTotal) statTotal.textContent = events.length;
+}
+
+function highlightMatch(text, query) {
+  if (!text) return '';
+  if (!query) return escapeHtml(text);
+  const escapedText = escapeHtml(text);
+  const escapedQuery = escapeHtml(query);
+  const regex = new RegExp(`(${escapedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  return escapedText.replace(regex, '<mark class="search-highlight">$1</mark>');
 }
 
 function renderEventsView() {
   const grid = document.getElementById('events-grid');
   if (!grid) return;
 
-  const searchVal = (document.getElementById('event-search')?.value || '').toLowerCase();
+  const searchInput = document.getElementById('event-search');
+  const clearBtn = document.getElementById('clear-search-btn');
+  const searchVal = (searchInput?.value || '').trim().toLowerCase();
+
+  if (clearBtn) {
+    clearBtn.classList.toggle('hidden', !searchVal);
+  }
+
   let filtered = events.filter(ev => {
-    const matchType = currentFilter === 'all' || ev.type === currentFilter;
+    let matchType = false;
+    if (currentFilter === 'all') {
+      matchType = true;
+    } else if (currentFilter === 'urgent') {
+      matchType = isEventUrgent(ev);
+    } else {
+      matchType = ev.type === currentFilter;
+    }
+
     const matchSearch = !searchVal ||
       ev.title.toLowerCase().includes(searchVal) ||
-      (ev.subject || '').toLowerCase().includes(searchVal);
+      (ev.subject || '').toLowerCase().includes(searchVal) ||
+      (ev.notes || '').toLowerCase().includes(searchVal) ||
+      (ev.date || '').toLowerCase().includes(searchVal);
+
     return matchType && matchSearch;
   });
 
-  filtered = filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+  const sortVal = document.getElementById('event-sort')?.value || 'date-asc';
+  if (sortVal === 'date-asc') {
+    filtered.sort((a, b) => new Date(`${a.date}T${a.time || '23:59'}`) - new Date(`${b.date}T${b.time || '23:59'}`));
+  } else if (sortVal === 'date-desc') {
+    filtered.sort((a, b) => new Date(`${b.date}T${b.time || '23:59'}`) - new Date(`${a.date}T${a.time || '23:59'}`));
+  } else if (sortVal === 'title-asc') {
+    filtered.sort((a, b) => a.title.localeCompare(b.title));
+  } else if (sortVal === 'urgent-first') {
+    filtered.sort((a, b) => {
+      const urgA = isEventUrgent(a) ? 1 : 0;
+      const urgB = isEventUrgent(b) ? 1 : 0;
+      return urgB - urgA;
+    });
+  } else if (sortVal === 'type') {
+    filtered.sort((a, b) => a.type.localeCompare(b.type));
+  }
+
+  const showingCount = document.getElementById('stat-showing-count');
+  if (showingCount) showingCount.textContent = filtered.length;
+
+  updateFilterBadges();
 
   if (filtered.length === 0) {
     grid.innerHTML = `<div class="empty-reminders" style="grid-column:1/-1">
-      <div class="empty-icon">📋</div>
-      <div class="empty-text">No events found. Try a different filter or paste some messages!</div>
+      <div class="empty-icon text-5xl mb-2 opacity-50">🔍</div>
+      <div class="empty-text text-slate-300 font-semibold text-base mb-1">No matching events found</div>
+      <div class="text-xs text-slate-400 mb-4">Try clearing your live search filter or changing categories.</div>
+      <button class="px-4 py-2 bg-purple-600/30 border border-purple-500/40 text-purple-300 rounded-xl text-xs font-semibold hover:bg-purple-600/50 transition-all" onclick="clearSearch(); filterEvents('all');">
+        ✨ Reset All Filters
+      </button>
     </div>`;
     return;
   }
 
   grid.innerHTML = filtered.map(ev => {
-    const color = TYPE_COLORS[ev.type];
+    const color = TYPE_COLORS[ev.type] || 'var(--purple)';
     const cd = getCountdown(ev.date, ev.time);
+    const urgent = isEventUrgent(ev);
+    const highlightedTitle = highlightMatch(ev.title, searchVal);
+    const highlightedSubject = highlightMatch(ev.subject, searchVal);
+    const highlightedNotes = highlightMatch(ev.notes, searchVal);
+
     return `
       <div class="event-card" style="--card-color: ${color}">
         <div class="event-card-header">
-          <div class="event-card-title">${escapeHtml(ev.title.substring(0,50))}${ev.title.length > 50 ? '…' : ''}</div>
+          <div class="event-card-title">${highlightedTitle}</div>
           <div class="event-card-actions">
-            <button class="icon-btn" onclick='openModal(${JSON.stringify(ev)})'>✏️</button>
-            <button class="icon-btn delete" onclick="deleteEvent('${ev.id}')">🗑️</button>
+            <button class="icon-btn" title="Edit" onclick='openModal(${JSON.stringify(ev)})'><i class="bi bi-pencil-fill"></i></button>
+            <button class="icon-btn delete" title="Delete" onclick="deleteEvent('${ev.id}')"><i class="bi bi-trash3-fill"></i></button>
           </div>
         </div>
-        <span class="result-type-badge badge-${ev.type}" style="display:inline-block;margin-bottom:10px">${TYPE_LABELS[ev.type]}</span>
+        
+        <div class="flex items-center gap-2 mb-3">
+          <span class="result-type-badge badge-${ev.type}">${TYPE_LABELS[ev.type]}</span>
+          ${urgent ? `<span class="result-type-badge badge-urgent"><i class="bi bi-fire me-1"></i>Urgent</span>` : ''}
+        </div>
+
         <div class="event-card-meta">
-          ${ev.subject ? `<span>📚 ${escapeHtml(ev.subject)}</span>` : ''}
-          <span>📅 ${formatDisplayDate(ev.date)}</span>
-          ${ev.time ? `<span>⏰ ${formatTime(ev.time)}</span>` : ''}
-          <span style="color:${cd.expired ? 'var(--text-dim)' : color};font-weight:600">⏳ ${cd.text}</span>
-          ${ev.notes ? `<span>📝 ${escapeHtml(ev.notes.substring(0,60))}</span>` : ''}
+          ${ev.subject ? `<div class="flex items-center gap-1.5"><i class="bi bi-journal-bookmark text-slate-400"></i> ${highlightedSubject}</div>` : ''}
+          <div class="flex items-center gap-1.5"><i class="bi bi-calendar-event text-slate-400"></i> ${formatDisplayDate(ev.date)}</div>
+          ${ev.time ? `<div class="flex items-center gap-1.5"><i class="bi bi-clock text-slate-400"></i> ${formatTime(ev.time)}</div>` : ''}
+          <div class="flex items-center gap-1.5 font-mono text-xs mt-1" style="color:${cd.expired ? 'var(--text-dim)' : color}; font-weight:700">
+            <i class="bi bi-hourglass-split"></i> ${cd.text}
+          </div>
+          ${ev.notes ? `<div class="text-xs text-slate-400 mt-2 bg-slate-950/60 p-2 rounded-lg border border-slate-800/80"><i class="bi bi-sticky me-1"></i>${highlightedNotes}</div>` : ''}
         </div>
       </div>`;
   }).join('');
